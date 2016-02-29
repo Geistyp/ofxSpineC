@@ -106,6 +106,7 @@ ofxSkeletonRenderer::ofxSkeletonRenderer(const char* skeletonDataFile, const cha
 	json->scale = scale;
 	spSkeletonData* skeletonData = spSkeletonJson_readSkeletonDataFile(json, skeletonDataFile);
 	//Assert(skeletonData, json->error ? json->error : "Error reading skeleton data file.");
+	if (json->error) cout << json->error << endl;
 	spSkeletonJson_dispose(json);
 
 	setSkeletonData(skeletonData, true);
@@ -160,6 +161,7 @@ void ofxSkeletonRenderer::draw () {
 	float r = 0, g = 0, b = 0, a = 0;
 	for (int i = 0, n = skeleton->slotsCount; i < n; i++) {
 		spSlot* slot = skeleton->drawOrder[i];
+		
 		if (!slot->attachment) continue;
 		ofTexture *texture = nullptr;
 		switch (slot->attachment->type) {
@@ -191,9 +193,9 @@ void ofxSkeletonRenderer::draw () {
 			a = attachment->a;
 			break;
 		}
-		case SP_ATTACHMENT_SKINNED_MESH: {
-			spSkinnedMeshAttachment* attachment = (spSkinnedMeshAttachment*)slot->attachment;
-			spSkinnedMeshAttachment_computeWorldVertices(attachment, slot, worldVertices);
+		case SP_ATTACHMENT_WEIGHTED_MESH: {
+			spWeightedMeshAttachment* attachment = (spWeightedMeshAttachment*)slot->attachment;
+			spWeightedMeshAttachment_computeWorldVertices(attachment, slot, worldVertices);
 			texture = getTexture(attachment);
 			uvs = attachment->uvs;
 			verticesCount = attachment->uvsCount;
@@ -258,8 +260,8 @@ void ofxSkeletonRenderer::draw () {
 		ofSetColor(255, 0, 0, 255);
 		for (int i = 0, n = skeleton->bonesCount; i < n; i++) {
 			spBone *bone = skeleton->bones[i];
-			float x = bone->data->length * bone->m00 + bone->worldX;
-			float y = bone->data->length * bone->m10 + bone->worldY;
+			float x = bone->data->length * bone->a + bone->worldX;
+			float y = bone->data->length * bone->c + bone->worldY;
 			ofDrawLine(ofVec2f(bone->worldX, bone->worldY), ofVec2f(x, y));
 		}
 		// Bone origins.
@@ -281,7 +283,7 @@ ofTexture* ofxSkeletonRenderer::getTexture (spMeshAttachment* attachment) const 
 	return (ofTexture*)((spAtlasRegion*)attachment->rendererObject)->page->rendererObject;
 }
 
-ofTexture* ofxSkeletonRenderer::getTexture (spSkinnedMeshAttachment* attachment) const {
+ofTexture* ofxSkeletonRenderer::getTexture (spWeightedMeshAttachment* attachment) const {
 	return (ofTexture*)((spAtlasRegion*)attachment->rendererObject)->page->rendererObject;
 }
 
@@ -300,9 +302,9 @@ ofRectangle ofxSkeletonRenderer::boundingBox () {
 			spMeshAttachment* mesh = (spMeshAttachment*)slot->attachment;
 			spMeshAttachment_computeWorldVertices(mesh, slot, worldVertices);
 			verticesCount = mesh->verticesCount;
-		} else if (slot->attachment->type == SP_ATTACHMENT_SKINNED_MESH) {
-			spSkinnedMeshAttachment* mesh = (spSkinnedMeshAttachment*)slot->attachment;
-			spSkinnedMeshAttachment_computeWorldVertices(mesh, slot, worldVertices);
+		} else if (slot->attachment->type == SP_ATTACHMENT_WEIGHTED_MESH) {
+			spWeightedMeshAttachment* mesh = (spWeightedMeshAttachment*)slot->attachment;
+			spWeightedMeshAttachment_computeWorldVertices(mesh, slot, worldVertices);
 			verticesCount = mesh->uvsCount;
 		} else
 			continue;
