@@ -66,6 +66,14 @@ public:
 	virtual void setOpacityModifyRGB (bool value);
 	virtual bool isOpacityModifyRGB ();
 
+	ofVec2f getPosition() {
+		return ofVec2f(skeleton->x, skeleton->y);
+	}
+
+	ofVec2f getWorldPosition() {
+		return ofVec2f(rootBone->worldX, rootBone->worldY);
+	}
+
 	void setPoision(ofVec2f v) {
 		position = v; 
 		skeleton->x = position.x;
@@ -81,7 +89,7 @@ protected:
 
 	virtual ofTexture* getTexture (spRegionAttachment* attachment) const;
 	virtual ofTexture* getTexture (spMeshAttachment* attachment) const;
-	virtual ofTexture* getTexture (spSkinnedMeshAttachment* attachment) const;
+	virtual ofTexture* getTexture (spWeightedMeshAttachment* attachment) const;
 
 private:
 	bool ownsSkeletonData;
